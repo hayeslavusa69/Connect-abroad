@@ -1,187 +1,35 @@
-import { useState } from 'react'
-import {
-  Globe2, MessageCircle, Users, Bell, Search, Heart, MessageSquare,
-  Share2, Image, Video, MapPin, Send, Menu, X, UserPlus
-} from 'lucide-react'
+import React,{useEffect,useState} from 'react';
+import {supabase} from './main';
+import {Home,Users,MessageCircle,Bell,Search,Plus,Heart,MessageSquare,Send,LogOut,Globe2,Menu,X,UserCircle,UserPlus,Check,Settings,Compass,MoreHorizontal} from 'lucide-react';
 
-const posts = [
-  {
-    id: 1,
-    name: 'Amina',
-    country: 'Kenya',
-    flag: '🇰🇪',
-    time: '12 min ago',
-    text: 'Hello everyone! I am excited to meet people from different countries and learn about new cultures. 🌍',
-    likes: 128,
-    comments: 24,
-  },
-  {
-    id: 2,
-    name: 'Daniel',
-    country: 'Brazil',
-    flag: '🇧🇷',
-    time: '38 min ago',
-    text: 'What is one thing visitors should experience in your country? Share your best local recommendation below!',
-    likes: 94,
-    comments: 31,
-  },
-]
+const countries=['Kenya','Nigeria','Ghana','South Africa','United Kingdom','United States','India','Canada','Tanzania','Uganda'];
+const avatar=(p)=>p?.avatar_url||`https://ui-avatars.com/api/?name=${encodeURIComponent(p?.full_name||p?.username||'User')}&background=2563eb&color=fff`;
 
-function App() {
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [liked, setLiked] = useState({})
-  const [composer, setComposer] = useState('')
+function Auth(){const [mode,setMode]=useState('login'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[name,setName]=useState(''),[username,setUsername]=useState(''),[country,setCountry]=useState('Kenya'),[busy,setBusy]=useState(false),[msg,setMsg]=useState('');
+ const submit=async e=>{e.preventDefault();setBusy(true);setMsg(''); if(mode==='signup'){const {error}=await supabase.auth.signUp({email,password,options:{data:{full_name:name,username,country}}});setMsg(error?.message||'Account created. Check your email if confirmation is required.')}else{const {error}=await supabase.auth.signInWithPassword({email,password});if(error)setMsg(error.message)}setBusy(false)};
+ return <div className="auth"><div className="auth-card"><div className="brand"><Globe2/> <b>Connect Abroad</b></div><h1>{mode==='login'?'Welcome back':'Join the world'}</h1><p>Connect with people and communities around the globe.</p><form onSubmit={submit}>{mode==='signup'&&<><input placeholder="Full name" value={name} onChange={e=>setName(e.target.value)} required/><input placeholder="Username" value={username} onChange={e=>setUsername(e.target.value)} required/><select value={country} onChange={e=>setCountry(e.target.value)}>{countries.map(c=><option key={c}>{c}</option>)}</select></>}<input type="email" placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} required/><input type="password" placeholder="Password" value={password} onChange={e=>setPassword(e.target.value)} minLength="6" required/><button className="primary" disabled={busy}>{busy?'Please wait…':mode==='login'?'Log in':'Create account'}</button></form>{msg&&<div className="notice">{msg}</div>}<button className="link" onClick={()=>setMode(mode==='login'?'signup':'login')}>{mode==='login'?"Don't have an account? Sign up":"Already have an account? Log in"}</button></div></div>}
 
-  const toggleLike = (id) => {
-    setLiked((current) => ({ ...current, [id]: !current[id] }))
-  }
-
-  return (
-    <div className="app">
-      <header className="topbar">
-        <div className="brand">
-          <div className="brand-icon"><Globe2 size={24} /></div>
-          <div>
-            <strong>Connect Abroad</strong>
-            <span>People. Cultures. Connections.</span>
-          </div>
-        </div>
-
-        <div className="search">
-          <Search size={18} />
-          <input placeholder="Search people, countries, groups..." />
-        </div>
-
-        <nav className="top-actions">
-          <button title="Messages"><MessageCircle /></button>
-          <button title="Notifications"><Bell /></button>
-          <button className="avatar">DH</button>
-        </nav>
-
-        <button className="mobile-menu" onClick={() => setMenuOpen(!menuOpen)}>
-          {menuOpen ? <X /> : <Menu />}
-        </button>
-      </header>
-
-      <div className="layout">
-        <aside className={menuOpen ? 'sidebar open' : 'sidebar'}>
-          <div className="profile-card">
-            <div className="profile-avatar">DH</div>
-            <div>
-              <strong>My Profile</strong>
-              <span>🌍 Global explorer</span>
-            </div>
-          </div>
-
-          <div className="side-nav">
-            <a className="active"><Globe2 /> Global Feed</a>
-            <a><Users /> Friends</a>
-            <a><MessageCircle /> Messages</a>
-            <a><Bell /> Notifications</a>
-            <a><UserPlus /> Discover People</a>
-          </div>
-
-          <div className="countries">
-            <p>Explore countries</p>
-            <span>🇰🇪 Kenya</span>
-            <span>🇧🇷 Brazil</span>
-            <span>🇯🇵 Japan</span>
-            <span>🇬🇧 United Kingdom</span>
-            <span>🇨🇦 Canada</span>
-          </div>
-        </aside>
-
-        <main className="feed">
-          <section className="hero">
-            <div>
-              <span className="eyebrow">GLOBAL COMMUNITY</span>
-              <h1>Meet the world.<br /><em>Connect anywhere.</em></h1>
-              <p>Discover people, cultures and communities from around the world — all in one place.</p>
-            </div>
-            <div className="hero-orbit">🌍</div>
-          </section>
-
-          <section className="composer card">
-            <div className="composer-row">
-              <div className="small-avatar">DH</div>
-              <input
-                value={composer}
-                onChange={(e) => setComposer(e.target.value)}
-                placeholder="What's happening around the world?"
-              />
-              <button className="post-btn" onClick={() => setComposer('')}>Post</button>
-            </div>
-            <div className="composer-tools">
-              <button><Image /> Photo</button>
-              <button><Video /> Video</button>
-              <button><MapPin /> Location</button>
-            </div>
-          </section>
-
-          <div className="section-title">
-            <h2>Global Feed</h2>
-            <button>Latest ▾</button>
-          </div>
-
-          {posts.map((post) => (
-            <article className="card post" key={post.id}>
-              <div className="post-head">
-                <div className="post-avatar">{post.name[0]}</div>
-                <div className="post-author">
-                  <strong>{post.name} <span>{post.flag}</span></strong>
-                  <span>{post.country} · {post.time}</span>
-                </div>
-                <button className="more">•••</button>
-              </div>
-              <p className="post-text">{post.text}</p>
-              <div className="post-stats">
-                <span>❤️ {post.likes + (liked[post.id] ? 1 : 0)} likes</span>
-                <span>{post.comments} comments</span>
-              </div>
-              <div className="post-actions">
-                <button className={liked[post.id] ? 'liked' : ''} onClick={() => toggleLike(post.id)}>
-                  <Heart /> Like
-                </button>
-                <button><MessageSquare /> Comment</button>
-                <button><Share2 /> Share</button>
-              </div>
-              <div className="comment-box">
-                <div className="small-avatar">DH</div>
-                <input placeholder="Write a comment..." />
-                <button><Send /></button>
-              </div>
-            </article>
-          ))}
-        </main>
-
-        <aside className="rightbar">
-          <section className="card discover">
-            <div className="section-title"><h3>People to connect</h3><button>See all</button></div>
-            {[
-              ['Sofia', '🇵🇹', 'Portugal'],
-              ['Ken', '🇯🇵', 'Japan'],
-              ['Maya', '🇨🇦', 'Canada'],
-            ].map(([name, flag, country]) => (
-              <div className="person" key={name}>
-                <div className="person-avatar">{name[0]}</div>
-                <div><strong>{name} {flag}</strong><span>{country}</span></div>
-                <button className="connect">+</button>
-              </div>
-            ))}
-          </section>
-
-          <section className="card countries-card">
-            <h3>🌎 Trending countries</h3>
-            <div className="country-row"><span>🇰🇪 Kenya</span><b>12.4K</b></div>
-            <div className="country-row"><span>🇯🇵 Japan</span><b>9.8K</b></div>
-            <div className="country-row"><span>🇧🇷 Brazil</span><b>8.7K</b></div>
-          </section>
-        </aside>
-      </div>
-
-      <footer>Connect Abroad 🌍 · Building a more connected world</footer>
-    </div>
-  )
-}
-
-export default App
+export default function App(){const [session,setSession]=useState(null),[profile,setProfile]=useState(null),[tab,setTab]=useState('home'),[posts,setPosts]=useState([]),[people,setPeople]=useState([]),[messages,setMessages]=useState([]),[notifications,setNotifications]=useState([]),[composer,setComposer]=useState(''),[search,setSearch]=useState(''),[mobile,setMobile]=useState(false),[selected,setSelected]=useState(null),[chatText,setChatText]=useState('');
+ useEffect(()=>{supabase.auth.getSession().then(({data})=>setSession(data.session));const {data}=supabase.auth.onAuthStateChange((_e,s)=>setSession(s));return()=>data.subscription.unsubscribe()},[]);
+ useEffect(()=>{if(session) loadAll()},[session]);
+ const loadAll=async()=>{let {data:p}=await supabase.from('profiles').select('*').order('created_at',{ascending:false});setPeople((p||[]).filter(x=>x.id!==session.user.id));let {data:me}=await supabase.from('profiles').select('*').eq('id',session.user.id).maybeSingle();setProfile(me);let {data:ps}=await supabase.from('posts').select('*,profiles(id,username,full_name,avatar_url,country),likes(user_id),comments(id,user_id,comment,created_at,profiles(username,full_name,avatar_url))').order('created_at',{ascending:false});setPosts(ps||[]);let {data:n}=await supabase.from('notifications').select('*').eq('user_id',session.user.id).order('created_at',{ascending:false}).limit(30);setNotifications(n||[]);let {data:m}=await supabase.from('messages').select('*,sender:profiles!messages_sender_id_fkey(id,username,full_name,avatar_url),receiver:profiles!messages_receiver_id_fkey(id,username,full_name,avatar_url)').or(`sender_id.eq.${session.user.id},receiver_id.eq.${session.user.id}`).order('created_at');setMessages(m||[])};
+ const createPost=async()=>{if(!composer.trim())return;const {error}=await supabase.from('posts').insert({user_id:session.user.id,content:composer.trim()});if(!error){setComposer('');loadAll()}};
+ const toggleLike=async post=>{const mine=post.likes?.some(l=>l.user_id===session.user.id);if(mine)await supabase.from('likes').delete().eq('post_id',post.id).eq('user_id',session.user.id);else await supabase.from('likes').insert({post_id:post.id,user_id:session.user.id});loadAll()};
+ const comment=async(post,text)=>{if(!text.trim())return;await supabase.from('comments').insert({post_id:post.id,user_id:session.user.id,comment:text.trim()});loadAll()};
+ const friend=async person=>{const {data:existing}=await supabase.from('friendships').select('*').or(`and(sender_id.eq.${session.user.id},receiver_id.eq.${person.id}),and(sender_id.eq.${person.id},receiver_id.eq.${session.user.id})`).maybeSingle();if(!existing){await supabase.from('friendships').insert({sender_id:session.user.id,receiver_id:person.id})}else if(existing.receiver_id===session.user.id&&existing.status==='pending'){await supabase.from('friendships').update({status:'accepted'}).eq('id',existing.id)}loadAll()};
+ const sendMessage=async()=>{if(!chatText.trim()||!selected)return;await supabase.from('messages').insert({sender_id:session.user.id,receiver_id:selected.id,message:chatText.trim()});setChatText('');loadAll()};
+ const logout=()=>supabase.auth.signOut();
+ if(!session)return <Auth/>;
+ const filtered=people.filter(p=>`${p.full_name} ${p.username} ${p.country}`.toLowerCase().includes(search.toLowerCase()));
+ const currentChat=selected?messages.filter(m=>m.sender_id===selected.id||m.receiver_id===selected.id):[];
+ return <div className="app"><header><button className="icon mobile" onClick={()=>setMobile(!mobile)}>{mobile?<X/>:<Menu/>}</button><div className="brand" onClick={()=>setTab('home')}><Globe2/><b>Connect Abroad</b></div><div className="search"><Search/><input placeholder="Search people, countries…" value={search} onChange={e=>setSearch(e.target.value)}/></div><div className="header-actions"><button onClick={()=>setTab('messages')}><MessageCircle/></button><button onClick={()=>setTab('notifications')}><Bell/><i>{notifications.filter(n=>!n.is_read).length||''}</i></button><img src={avatar(profile)} onClick={()=>setTab('profile')}/></div></header>
+ <aside className={mobile?'open':''}><Nav icon={<Home/>} text="Home" active={tab==='home'} onClick={()=>setTab('home')}/><Nav icon={<Compass/>} text="Discover" active={tab==='discover'} onClick={()=>setTab('discover')}/><Nav icon={<Users/>} text="Friends" active={tab==='friends'} onClick={()=>setTab('friends')}/><Nav icon={<MessageCircle/>} text="Messages" active={tab==='messages'} onClick={()=>setTab('messages')}/><Nav icon={<Bell/>} text="Notifications" active={tab==='notifications'} onClick={()=>setTab('notifications')}/><Nav icon={<UserCircle/>} text="My profile" active={tab==='profile'} onClick={()=>setTab('profile')}/><div className="side-bottom"><Nav icon={<Settings/>} text="Settings"/><Nav icon={<LogOut/>} text="Log out" onClick={logout}/></div></aside>
+ <main><div className="container">{tab==='home'&&<><section className="hero"><div><span>🌍 GLOBAL COMMUNITY</span><h1>Meet the world.<br/><em>Connect anywhere.</em></h1><p>Share moments, discover cultures and build genuine connections across borders.</p></div><div className="globe">🌎</div></section><div className="grid"><section><div className="composer"><img src={avatar(profile)}/><input placeholder="What's happening around the world?" value={composer} onChange={e=>setComposer(e.target.value)} onKeyDown={e=>e.key==='Enter'&&createPost()}/><button className="primary small" onClick={createPost}><Send/></button></div><Feed posts={posts} profile={profile} toggleLike={toggleLike} comment={comment}/></section><Right people={people} friend={friend}/></div></>}{tab==='discover'&&<Discover people={filtered} friend={friend}/>} {tab==='friends'&&<Discover people={people} friend={friend} title="People you may know"/>}{tab==='messages'&&<Chat people={people} messages={messages} selected={selected} setSelected={setSelected} text={chatText} setText={setChatText} send={sendMessage} me={session.user.id}/>} {tab==='notifications'&&<Notifications items={notifications}/>} {tab==='profile'&&<Profile profile={profile} posts={posts.filter(p=>p.user_id===session.user.id)}/>}</div></main></div>}
+function Nav({icon,text,active,onClick}){return <button className={active?'nav active':'nav'} onClick={onClick}>{icon}<span>{text}</span></button>}
+function Feed({posts,toggleLike,comment}){return <div className="feed">{posts.length?posts.map(p=><Post key={p.id} p={p} toggleLike={toggleLike} comment={comment}/>):<div className="empty">No posts yet. Be the first to share something!</div>}</div>}
+function Post({p,toggleLike,comment}){const [text,setText]=useState('');const liked=p.likes?.some(l=>l.user_id===JSON.parse(localStorage.getItem('noop')||'null'));return <article className="post"><div className="post-head"><img src={avatar(p.profiles)}/><div><b>{p.profiles?.full_name||p.profiles?.username||'User'}</b><small>@{p.profiles?.username||'user'} · {p.profiles?.country||'Global'}</small></div><MoreHorizontal className="muted"/></div><p>{p.content}</p>{p.image_url&&<img className="post-media" src={p.image_url}/>}<div className="stats"><span>{p.likes?.length||0} likes</span><span>{p.comments?.length||0} comments</span></div><div className="post-actions"><button onClick={()=>toggleLike(p)}><Heart/> Like</button><button onClick={()=>document.getElementById('c'+p.id)?.focus()}><MessageSquare/> Comment</button></div><div className="comment-box"><input id={'c'+p.id} placeholder="Write a comment…" value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){comment(p,text);setText('')}}}/><button onClick={()=>{comment(p,text);setText('')}}><Send/></button></div>{p.comments?.slice(-3).map(c=><div className="comment" key={c.id}><img src={avatar(c.profiles)}/><div><b>{c.profiles?.full_name||c.profiles?.username}</b><p>{c.comment}</p></div></div>)}</article>}
+function Right({people,friend}){return <aside className="right"><div className="panel"><h3>People to connect</h3>{people.slice(0,4).map(p=><div className="person" key={p.id}><img src={avatar(p)}/><div><b>{p.full_name||p.username}</b><small>{p.country||'Global'}</small></div><button onClick={()=>friend(p)}><UserPlus/></button></div>)}</div><div className="panel"><h3>Trending countries</h3>{['🇰🇪 Kenya','🇺🇸 United States','🇬🇧 United Kingdom','🇳🇬 Nigeria'].map(x=><div className="trend" key={x}>{x}<span>Explore →</span></div>)}</div></aside>}
+function Discover({people,friend,title='Discover people'}){return <section className="page"><h2>{title}</h2><p>Find people from different countries and start a conversation.</p><div className="people-grid">{people.map(p=><div className="profile-card" key={p.id}><img src={avatar(p)}/><h3>{p.full_name||p.username}</h3><small>@{p.username||'user'}</small><p>📍 {p.country||'Worldwide'}</p><button className="primary" onClick={()=>friend(p)}><UserPlus/> Connect</button></div>)}</div></section>}
+function Chat({people,messages,selected,setSelected,text,setText,send,me}){return <section className="chat"><div className="chat-list"><h2>Messages</h2>{people.map(p=><button className={selected?.id===p.id?'chat-person selected':'chat-person'} key={p.id} onClick={()=>setSelected(p)}><img src={avatar(p)}/><span><b>{p.full_name||p.username}</b><small>{p.country||'Global'}</small></span></button>)}</div><div className="chat-window">{selected?<><div className="chat-title"><img src={avatar(selected)}/><b>{selected.full_name||selected.username}</b></div><div className="bubbles">{messages.filter(m=>m.sender_id===selected.id||m.receiver_id===selected.id).map(m=><div className={m.sender_id===me?'bubble mine':'bubble'} key={m.id}>{m.message}</div>)}</div><div className="chat-input"><input placeholder="Type a message…" value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()}/><button className="primary" onClick={send}><Send/></button></div></>:<div className="empty">Select someone to start chatting 💬</div>}</div></section>}
+function Notifications({items}){return <section className="page"><h2>Notifications</h2>{items.length?items.map(n=><div className="notification" key={n.id}><Bell/><div><b>{n.type}</b><p>{n.content}</p><small>{new Date(n.created_at).toLocaleString()}</small></div></div>):<div className="empty">You're all caught up.</div>}</section>}
+function Profile({profile,posts}){return <section className="profile-page"><div className="cover"></div><div className="profile-main"><img className="big-avatar" src={avatar(profile)}/><h1>{profile?.full_name||profile?.username}</h1><p>@{profile?.username} · 📍 {profile?.country||'Worldwide'}</p><p>{profile?.bio||'Welcome to my Connect Abroad profile 🌍'}</p></div><h2>Your posts</h2><Feed posts={posts} toggleLike={()=>{}} comment={()=>{}}/></section>}
